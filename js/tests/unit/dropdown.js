@@ -16,6 +16,7 @@ $(function () {
     afterEach: function () {
       $.fn.dropdown = $.fn.bootstrapDropdown
       delete $.fn.bootstrapDropdown
+      $('#qunit-fixture').html('')
     }
   })
 
@@ -197,30 +198,6 @@ $(function () {
     var dropdownHTML = '<div class="tabs">' +
         '<div class="dropdown">' +
         '<a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>' +
-        '<div class="dropdown-menu">' +
-        '<a class="dropdown-item" href="#">Secondary link</a>' +
-        '<a class="dropdown-item" href="#">Something else here</a>' +
-        '<div class="divider"/>' +
-        '<a class="dropdown-item" href="#">Another link</a>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    var $dropdown = $(dropdownHTML).find('[data-toggle="dropdown"]').bootstrapDropdown()
-    $dropdown
-      .parent('.dropdown')
-      .on('shown.bs.dropdown', function () {
-        assert.ok($dropdown.parent('.dropdown').hasClass('show'), '"show" class added on click')
-        done()
-      })
-    $dropdown.trigger('click')
-  })
-
-  QUnit.test('should test if element has a # before assuming it\'s a selector', function (assert) {
-    assert.expect(1)
-    var done = assert.async()
-    var dropdownHTML = '<div class="tabs">' +
-        '<div class="dropdown">' +
-        '<a href="/foo/" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>' +
         '<div class="dropdown-menu">' +
         '<a class="dropdown-item" href="#">Secondary link</a>' +
         '<a class="dropdown-item" href="#">Something else here</a>' +
@@ -493,6 +470,74 @@ $(function () {
       .on('shown.bs.dropdown', function (e) {
         assert.strictEqual(e.relatedTarget, $dropdown[0])
         $(document.body).trigger('click')
+      })
+
+    $dropdown.trigger('click')
+  })
+
+  QUnit.test('should fire hide and hidden event with a clickEvent', function (assert) {
+    assert.expect(3)
+    var dropdownHTML = '<div class="tabs">' +
+        '<div class="dropdown">' +
+        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>' +
+        '<div class="dropdown-menu">' +
+        '<a class="dropdown-item" href="#">Secondary link</a>' +
+        '<a class="dropdown-item" href="#">Something else here</a>' +
+        '<div class="divider"/>' +
+        '<a class="dropdown-item" href="#">Another link</a>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
+    var $dropdown = $(dropdownHTML)
+      .appendTo('#qunit-fixture')
+      .find('[data-toggle="dropdown"]')
+      .bootstrapDropdown()
+
+    $dropdown.parent('.dropdown')
+      .on('hide.bs.dropdown', function (e) {
+        assert.ok(e.clickEvent)
+      })
+      .on('hidden.bs.dropdown', function (e) {
+        assert.ok(e.clickEvent)
+      })
+      .on('shown.bs.dropdown', function () {
+        assert.ok(true, 'shown was fired')
+        $(document.body).trigger('click')
+      })
+
+    $dropdown.trigger('click')
+  })
+
+  QUnit.test('should fire hide and hidden event without a clickEvent if event type is not click', function (assert) {
+    assert.expect(3)
+    var dropdownHTML = '<div class="tabs">' +
+        '<div class="dropdown">' +
+        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>' +
+        '<div class="dropdown-menu">' +
+        '<a class="dropdown-item" href="#">Secondary link</a>' +
+        '<a class="dropdown-item" href="#">Something else here</a>' +
+        '<div class="divider"/>' +
+        '<a class="dropdown-item" href="#">Another link</a>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
+    var $dropdown = $(dropdownHTML)
+      .appendTo('#qunit-fixture')
+      .find('[data-toggle="dropdown"]')
+      .bootstrapDropdown()
+
+    $dropdown.parent('.dropdown')
+      .on('hide.bs.dropdown', function (e) {
+        assert.notOk(e.clickEvent)
+      })
+      .on('hidden.bs.dropdown', function (e) {
+        assert.notOk(e.clickEvent)
+      })
+      .on('shown.bs.dropdown', function () {
+        assert.ok(true, 'shown was fired')
+        $dropdown.trigger($.Event('keydown', {
+          which: 27
+        }))
       })
 
     $dropdown.trigger('click')
